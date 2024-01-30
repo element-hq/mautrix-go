@@ -3,8 +3,8 @@ package olm
 import (
 	"fmt"
 
-	"maunium.net/go/mautrix/crypto/goolm"
-	"maunium.net/go/mautrix/crypto/goolm/crypto"
+	"github.com/element-hq/mautrix-go/crypto/goolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/crypto"
 )
 
 // skippedMessageKey stores a skipped message key

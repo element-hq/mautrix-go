@@ -10,8 +10,8 @@ import (
 	"context"
 	"fmt"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type CrossSigningPublicKeysCache struct {

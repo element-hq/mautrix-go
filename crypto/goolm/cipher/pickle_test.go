@@ -5,7 +5,7 @@ import (
 	"crypto/aes"
 	"testing"
 
-	"maunium.net/go/mautrix/crypto/goolm/cipher"
+	"github.com/element-hq/mautrix-go/crypto/goolm/cipher"
 )
 
 func TestEncoding(t *testing.T) {

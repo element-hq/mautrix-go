@@ -6,14 +6,14 @@ import (
 	"errors"
 	"fmt"
 
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/id"
 
-	"maunium.net/go/mautrix/crypto/goolm"
-	"maunium.net/go/mautrix/crypto/goolm/cipher"
-	"maunium.net/go/mautrix/crypto/goolm/crypto"
-	"maunium.net/go/mautrix/crypto/goolm/libolmpickle"
-	"maunium.net/go/mautrix/crypto/goolm/megolm"
-	"maunium.net/go/mautrix/crypto/goolm/utilities"
+	"github.com/element-hq/mautrix-go/crypto/goolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/cipher"
+	"github.com/element-hq/mautrix-go/crypto/goolm/crypto"
+	"github.com/element-hq/mautrix-go/crypto/goolm/libolmpickle"
+	"github.com/element-hq/mautrix-go/crypto/goolm/megolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/utilities"
 )
 
 const (

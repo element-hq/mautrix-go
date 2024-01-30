@@ -4,8 +4,8 @@ package sas
 import (
 	"io"
 
-	"maunium.net/go/mautrix/crypto/goolm"
-	"maunium.net/go/mautrix/crypto/goolm/crypto"
+	"github.com/element-hq/mautrix-go/crypto/goolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/crypto"
 )
 
 // SAS contains the key pair and secret for SAS.

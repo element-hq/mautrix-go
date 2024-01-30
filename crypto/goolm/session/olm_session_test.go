@@ -6,10 +6,10 @@ import (
 	"errors"
 	"testing"
 
-	"maunium.net/go/mautrix/crypto/goolm"
-	"maunium.net/go/mautrix/crypto/goolm/crypto"
-	"maunium.net/go/mautrix/crypto/goolm/session"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/crypto/goolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/crypto"
+	"github.com/element-hq/mautrix-go/crypto/goolm/session"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 func TestOlmSession(t *testing.T) {

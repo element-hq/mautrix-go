@@ -6,7 +6,7 @@ import (
 	"io"
 	"testing"
 
-	"maunium.net/go/mautrix/crypto/goolm/crypto"
+	"github.com/element-hq/mautrix-go/crypto/goolm/crypto"
 )
 
 func TestHMACSha256(t *testing.T) {

@@ -10,8 +10,8 @@ import (
 	"context"
 	"fmt"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/event"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/event"
 )
 
 // Machine contains utility methods for interacting with SSSS data on the server.

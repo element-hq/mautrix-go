@@ -5,10 +5,10 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"maunium.net/go/mautrix/crypto/goolm"
-	"maunium.net/go/mautrix/crypto/goolm/crypto"
-	"maunium.net/go/mautrix/crypto/goolm/pk"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/crypto/goolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/crypto"
+	"github.com/element-hq/mautrix-go/crypto/goolm/pk"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 func TestEncryptionDecryption(t *testing.T) {

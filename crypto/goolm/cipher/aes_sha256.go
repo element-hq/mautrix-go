@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 
-	"maunium.net/go/mautrix/crypto/goolm/crypto"
+	"github.com/element-hq/mautrix-go/crypto/goolm/crypto"
 )
 
 // derivedAESKeys stores the derived keys for the AESSHA256 cipher

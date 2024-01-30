@@ -6,7 +6,7 @@ import (
 	"crypto/cipher"
 	"fmt"
 
-	"maunium.net/go/mautrix/crypto/goolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm"
 )
 
 // AESCBCBlocksize returns the blocksize of the encryption method

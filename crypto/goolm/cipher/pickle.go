@@ -3,7 +3,7 @@ package cipher
 import (
 	"fmt"
 
-	"maunium.net/go/mautrix/crypto/goolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm"
 )
 
 const (

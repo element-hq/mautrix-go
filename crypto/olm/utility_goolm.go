@@ -12,9 +12,9 @@ import (
 	"github.com/tidwall/sjson"
 	"go.mau.fi/util/exgjson"
 
-	"maunium.net/go/mautrix/crypto/canonicaljson"
-	"maunium.net/go/mautrix/crypto/goolm/utilities"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/crypto/canonicaljson"
+	"github.com/element-hq/mautrix-go/crypto/goolm/utilities"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 // Utility stores the necessary state to perform hash and signature

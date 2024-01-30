@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/id"
 
-	"maunium.net/go/mautrix/crypto/goolm"
-	"maunium.net/go/mautrix/crypto/goolm/account"
-	"maunium.net/go/mautrix/crypto/goolm/utilities"
+	"github.com/element-hq/mautrix-go/crypto/goolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/account"
+	"github.com/element-hq/mautrix-go/crypto/goolm/utilities"
 )
 
 func TestAccount(t *testing.T) {

@@ -3,7 +3,7 @@
 package olm
 
 import (
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 // Signatures is the data structure used to sign JSON objects.

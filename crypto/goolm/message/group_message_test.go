@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"maunium.net/go/mautrix/crypto/goolm/message"
+	"github.com/element-hq/mautrix-go/crypto/goolm/message"
 )
 
 func TestGroupMessageDecode(t *testing.T) {

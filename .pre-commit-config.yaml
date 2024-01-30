@@ -14,6 +14,6 @@ repos:
       - id: go-imports-repo
         args:
           - "-local"
-          - "maunium.net/go/mautrix"
+          - "github.com/element-hq/mautrix-go"
           - "-w"
       - id: go-vet-repo-mod

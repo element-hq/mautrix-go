@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"maunium.net/go/mautrix/crypto/goolm/megolm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/megolm"
 )
 
 var startData [megolm.RatchetParts * megolm.RatchetPartLength]byte
