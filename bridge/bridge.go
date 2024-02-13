@@ -23,7 +23,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog"
-	deflog "github.com/rs/zerolog/log"
 	"go.mau.fi/util/configupgrade"
 	"go.mau.fi/util/dbutil"
 	_ "go.mau.fi/util/dbutil/litestream"
@@ -291,7 +290,7 @@ func (br *Bridge) InitVersion(tag, commit, buildTime string) {
 	br.BuildTime = buildTime
 }
 
-var MinSpecVersion = mautrix.SpecV11
+var MinSpecVersion = mautrix.SpecV14
 
 func (br *Bridge) ensureConnection(ctx context.Context) {
 	for {
@@ -516,11 +515,7 @@ func (br *Bridge) init() {
 		_, _ = fmt.Fprintln(os.Stderr, "Failed to initialize logger:", err)
 		os.Exit(12)
 	}
-	defaultCtxLog := br.ZLog.With().Bool("default_context_log", true).Caller().Logger()
-	zerolog.TimeFieldFormat = time.RFC3339Nano
-	zerolog.CallerMarshalFunc = exzerolog.CallerWithFunctionName
-	zerolog.DefaultContextLogger = &defaultCtxLog
-	deflog.Logger = br.ZLog.With().Bool("global_log", true).Caller().Logger()
+	exzerolog.SetupDefaults(br.ZLog)
 	br.Log = maulogadapt.ZeroAsMau(br.ZLog)
 
 	br.DoublePuppet = &doublePuppetUtil{br: br, log: br.ZLog.With().Str("component", "double puppet").Logger()}
@@ -567,11 +562,24 @@ func (br *Bridge) init() {
 	br.ZLog.Debug().Msg("Initializing state store")
 	br.StateStore = sqlstatestore.NewSQLStateStore(br.DB, dbutil.ZeroLogger(br.ZLog.With().Str("db_section", "matrix_state").Logger()), true)
 
-	br.AS = br.Config.MakeAppService()
+	br.AS, err = appservice.CreateFull(appservice.CreateOpts{
+		Registration:     br.Config.AppService.GetRegistration(),
+		HomeserverDomain: br.Config.Homeserver.Domain,
+		HomeserverURL:    br.Config.Homeserver.Address,
+		HostConfig: appservice.HostConfig{
+			Hostname: br.Config.AppService.Hostname,
+			Port:     br.Config.AppService.Port,
+		},
+		StateStore: br.StateStore,
+	})
+	if err != nil {
+		br.ZLog.WithLevel(zerolog.FatalLevel).Err(err).
+			Msg("Failed to initialize appservice")
+		os.Exit(15)
+	}
+	br.AS.Log = *br.ZLog
 	br.AS.DoublePuppetValue = br.Name
 	br.AS.GetProfile = br.getProfile
-	br.AS.Log = *br.ZLog
-	br.AS.StateStore = br.StateStore
 	br.Bot = br.AS.BotIntent()
 
 	br.ZLog.Debug().Msg("Initializing Matrix event processor")

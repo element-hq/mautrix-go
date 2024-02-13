@@ -1,3 +1,14 @@
+## unreleased
+
+* *(appservice)* Dropped support for legacy non-prefixed appservice paths
+  (e.g. `/transactions` instead of `/_matrix/app/v1/transactions`).
+* *(appservice)* Dropped support for legacy `access_token` authorization in
+  appservice endpoints.
+* *(bridge)* Bumped minimum Matrix spec version to v1.4.
+* *(bridge)* Fixed `RawArgs` field in command events of command state callbacks.
+* *(appservice)* Added `CreateFull` helper function for creating an `AppService`
+  instance with all the mandatory fields set.
+
 ## v0.17.0 (2024-01-16)
 
 * **Breaking change *(bridge)*** Added raw event to portal membership handling
