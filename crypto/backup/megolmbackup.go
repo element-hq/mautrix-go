@@ -1,3 +1,9 @@
+// Copyright (c) 2024 Sumner Evans
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package backup
 
 import (
@@ -29,5 +35,5 @@ type MegolmSessionData struct {
 	ForwardingKeyChain []string          `json:"forwarding_curve25519_key_chain"`
 	SenderClaimedKeys  SenderClaimedKeys `json:"sender_claimed_keys"`
 	SenderKey          id.SenderKey      `json:"sender_key"`
-	SessionKey         []byte            `json:"session_key"`
+	SessionKey         string            `json:"session_key"`
 }
