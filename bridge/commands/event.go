@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog"
-	"maunium.net/go/maulogger/v2"
 
 	"github.com/element-hq/mautrix-go"
 	"github.com/element-hq/mautrix-go/appservice"
@@ -38,8 +37,6 @@ type Event struct {
 	ReplyTo   id.EventID
 	Ctx       context.Context
 	ZLog      *zerolog.Logger
-	// Deprecated: switch to ZLog
-	Log maulogger.Logger
 }
 
 // MainIntent returns the intent to use when replying to the command.

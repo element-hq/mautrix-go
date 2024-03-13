@@ -1,5 +1,17 @@
 ## v0.18.0 (unreleased)
 
+* **Breaking change *(client, bridge, appservice)*** Dropped support for
+  maulogger. Only zerolog loggers are now provided by default.
+* *(bridge)* Fixed upload size limit not having a default if the server
+  returned no value.
+* *(synapseadmin)* Added wrappers for some room and user admin APIs.
+  (thanks to [@grvn-ht] in [#181]).
+* *(crypto/verificationhelper)* Fixed bugs.
+* *(crypto)* Fixed key backup uploading doing too much base64.
+
+[@grvn-ht]: https://github.com/grvn-ht
+[#181]: https://github.com/mautrix/go/pull/181
+
 ### beta.1 (2024-02-16)
 
 * Bumped minimum Go version to 1.21.

@@ -29,8 +29,6 @@ import (
 	"go.mau.fi/util/exzerolog"
 	"gopkg.in/yaml.v3"
 	flag "maunium.net/go/mauflag"
-	"maunium.net/go/maulogger/v2"
-	"maunium.net/go/maulogger/v2/maulogadapt"
 
 	"github.com/element-hq/mautrix-go"
 	"github.com/element-hq/mautrix-go/appservice"
@@ -89,6 +87,11 @@ type MetaHandlingPortal interface {
 type DisappearingPortal interface {
 	Portal
 	ScheduleDisappearing()
+}
+
+type PowerLevelHandlingPortal interface {
+	Portal
+	HandleMatrixPowerLevels(sender User, evt *event.Event)
 }
 
 type User interface {
@@ -196,8 +199,6 @@ type Bridge struct {
 	Crypto           Crypto
 	CryptoPickleKey  string
 
-	// Deprecated: Switch to ZLog
-	Log  maulogger.Logger
 	ZLog *zerolog.Logger
 
 	MediaConfig  mautrix.RespMediaConfig
@@ -333,8 +334,10 @@ func (br *Bridge) ensureConnection(ctx context.Context) {
 	if err != nil {
 		if errors.Is(err, mautrix.MUnknownToken) {
 			br.ZLog.WithLevel(zerolog.FatalLevel).Msg("The as_token was not accepted. Is the registration file installed in your homeserver correctly?")
+			br.ZLog.Info().Msg("See https://docs.mau.fi/faq/as-token for more info")
 		} else if errors.Is(err, mautrix.MExclusive) {
 			br.ZLog.WithLevel(zerolog.FatalLevel).Msg("The as_token was accepted, but the /register request was not. Are the homeserver domain, bot username and username template in the config correct, and do they match the values in the registration?")
+			br.ZLog.Info().Msg("See https://docs.mau.fi/faq/as-register for more info")
 		} else {
 			br.ZLog.WithLevel(zerolog.FatalLevel).Err(err).Msg("/whoami request failed with unknown error")
 		}
@@ -387,6 +390,7 @@ func (br *Bridge) ensureConnection(ctx context.Context) {
 		}
 		if outOfRetries {
 			evt.Msg("Homeserver -> bridge connection is not working")
+			br.ZLog.Info().Msg("See https://docs.mau.fi/faq/as-ping for more info")
 			os.Exit(13)
 		}
 		evt.Msg("Homeserver -> bridge connection is not working, retrying in 5 seconds...")
@@ -528,13 +532,13 @@ func (br *Bridge) init() {
 		os.Exit(12)
 	}
 	exzerolog.SetupDefaults(br.ZLog)
-	br.Log = maulogadapt.ZeroAsMau(br.ZLog)
 
 	br.DoublePuppet = &doublePuppetUtil{br: br, log: br.ZLog.With().Str("component", "double puppet").Logger()}
 
 	err = br.validateConfig()
 	if err != nil {
 		br.ZLog.WithLevel(zerolog.FatalLevel).Err(err).Msg("Configuration error")
+		br.ZLog.Info().Msg("See https://docs.mau.fi/faq/field-unconfigured for more info")
 		os.Exit(11)
 	}
 
@@ -667,6 +671,7 @@ func (br *Bridge) LogDBUpgradeErrorAndExit(name string, err error) {
 		os.Exit(18)
 	} else if errors.Is(err, dbutil.ErrForeignTables) {
 		br.ZLog.Info().Msg("You can use --ignore-foreign-tables to ignore this error")
+		br.ZLog.Info().Msg("See https://docs.mau.fi/faq/foreign-tables for more info")
 	} else if errors.Is(err, dbutil.ErrNotOwned) {
 		br.ZLog.Info().Msg("Sharing the same database with different programs is not supported")
 	} else if errors.Is(err, dbutil.ErrUnsupportedDatabaseVersion) {
