@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"maunium.net/go/mautrix/crypto/goolm/pk"
-	"maunium.net/go/mautrix/crypto/olm"
+	"github.com/element-hq/mautrix-go/crypto/goolm/pk"
+	"github.com/element-hq/mautrix-go/crypto/olm"
 )
 
 func FuzzSign(f *testing.F) {

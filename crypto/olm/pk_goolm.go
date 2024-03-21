@@ -11,7 +11,7 @@
 
 package olm
 
-import "maunium.net/go/mautrix/crypto/goolm/pk"
+import "github.com/element-hq/mautrix-go/crypto/goolm/pk"
 
 // NewPKSigningFromSeed creates a new PKSigning object using the given seed.
 func NewPKSigningFromSeed(seed []byte) (PKSigning, error) {

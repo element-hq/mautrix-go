@@ -18,7 +18,6 @@ require (
 	golang.org/x/exp v0.0.0-20240314144324-c7f7c6466f7f
 	golang.org/x/net v0.22.0
 	gopkg.in/yaml.v3 v3.0.1
-	maunium.net/go/mauflag v1.0.0
 )
 
 require (
@@ -31,4 +30,5 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
+	maunium.net/go/mauflag v1.0.0 // indirect
 )
