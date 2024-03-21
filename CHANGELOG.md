@@ -1,4 +1,26 @@
-## v0.18.0 (unreleased)
+## v0.18.0 (2024-03-16)
+
+* **Breaking change *(client, bridge, appservice)*** Dropped support for
+  maulogger. Only zerolog loggers are now provided by default.
+* *(bridge)* Fixed upload size limit not having a default if the server
+  returned no value.
+* *(synapseadmin)* Added wrappers for some room and user admin APIs.
+  (thanks to [@grvn-ht] in [#181]).
+* *(crypto/verificationhelper)* Fixed bugs.
+* *(crypto)* Fixed key backup uploading doing too much base64.
+* *(crypto)* Changed `EncryptMegolmEvent` to return an error if persisting the
+  megolm session fails. This ensures that database errors won't cause messages
+  to be sent with duplicate indexes.
+* *(crypto)* Changed `GetOrRequestSecret` to use a callback instead of returning
+  the value directly. This allows validating the value in order to ignore
+  invalid secrets.
+* *(id)* Added `ParseCommonIdentifier` function to parse any Matrix identifier
+  in the [Common Identifier Format].
+* *(federation)* Added simple key server that passes the federation tester.
+
+[@grvn-ht]: https://github.com/grvn-ht
+[#181]: https://github.com/mautrix/go/pull/181
+[Common Identifier Format]: https://spec.matrix.org/v1.9/appendices/#common-identifier-format
 
 ### beta.1 (2024-02-16)
 
@@ -29,6 +51,9 @@
   functions.
 * **Breaking change *(everything)*** Added context parameters to all functions
   (started by [@recht] in [#144]).
+* **Breaking change *(client)*** Moved event source from sync event handler
+  function parameters to the `Mautrix.EventSource` field inside the event
+  struct.
 * **Breaking change *(client)*** Moved `EventSource` to `event.Source`.
 * *(client)* Removed deprecated `OldEventIgnorer`. The non-deprecated version
   (`Client.DontProcessOldEvents`) is still available.

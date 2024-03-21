@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog"
-	"maunium.net/go/maulogger/v2/maulogadapt"
 
 	"github.com/element-hq/mautrix-go/bridge"
 	"github.com/element-hq/mautrix-go/id"
@@ -91,7 +90,6 @@ func (proc *Processor) Handle(ctx context.Context, roomID id.RoomID, eventID id.
 		ReplyTo:   replyTo,
 		Ctx:       ctx,
 		ZLog:      &log,
-		Log:       maulogadapt.ZeroAsMau(&log),
 	}
 	log.Debug().Msg("Received command")
 

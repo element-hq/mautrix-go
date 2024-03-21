@@ -10,12 +10,10 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdh"
-	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"go.mau.fi/util/jsontime"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -40,7 +38,7 @@ const (
 	verificationStateSASStarted       // An SAS verification has been started
 	verificationStateSASAccepted      // An SAS verification has been accepted
 	verificationStateSASKeysExchanged // An SAS verification has exchanged keys
-	verificationStateSASMAC           // An SAS verification has exchanged MACs
+	verificationStateSASMACExchanged  // An SAS verification has exchanged MACs
 )
 
 func (step verificationState) String() string {
@@ -61,7 +59,7 @@ func (step verificationState) String() string {
 		return "sas_accepted"
 	case verificationStateSASKeysExchanged:
 		return "sas_keys_exchanged"
-	case verificationStateSASMAC:
+	case verificationStateSASMACExchanged:
 		return "sas_mac"
 	default:
 		return fmt.Sprintf("verificationStep(%d)", step)
@@ -104,6 +102,10 @@ type verificationTransaction struct {
 	EphemeralKey             *ecdh.PrivateKey                     // The ephemeral key
 	EphemeralPublicKeyShared bool                                 // Whether this device's ephemeral public key has been shared
 	OtherPublicKey           *ecdh.PublicKey                      // The other device's ephemeral public key
+	ReceivedTheirMAC         bool                                 // Whether we have received their MAC
+	SentOurMAC               bool                                 // Whether we have sent our MAC
+	ReceivedTheirDone        bool                                 // Whether we have received their done event
+	SentOurDone              bool                                 // Whether we have sent our done event
 }
 
 // RequiredCallbacks is an interface representing the callbacks required for
@@ -112,10 +114,6 @@ type RequiredCallbacks interface {
 	// VerificationRequested is called when a verification request is received
 	// from another device.
 	VerificationRequested(ctx context.Context, txnID id.VerificationTransactionID, from id.UserID)
-
-	// VerificationError is called when an error occurs during the verification
-	// process.
-	VerificationError(ctx context.Context, txnID id.VerificationTransactionID, err error)
 
 	// VerificationCancelled is called when the verification is cancelled.
 	VerificationCancelled(ctx context.Context, txnID id.VerificationTransactionID, code event.VerificationCancelCode, reason string)
@@ -132,6 +130,11 @@ type showSASCallbacks interface {
 }
 
 type showQRCodeCallbacks interface {
+	// ScanQRCode is called when another device has sent a
+	// m.key.verification.ready event and indicated that they are capable of
+	// showing a QR code.
+	ScanQRCode(ctx context.Context, txnID id.VerificationTransactionID)
+
 	// ShowQRCode is called when the verification has been accepted and a QR
 	// code should be shown to the user.
 	ShowQRCode(ctx context.Context, txnID id.VerificationTransactionID, qrCode *QRCode)
@@ -149,14 +152,14 @@ type VerificationHelper struct {
 	activeTransactionsLock sync.Mutex
 
 	// supportedMethods are the methods that *we* support
-	supportedMethods      []event.VerificationMethod
-	verificationRequested func(ctx context.Context, txnID id.VerificationTransactionID, from id.UserID)
-	verificationError     func(ctx context.Context, txnID id.VerificationTransactionID, err error)
-	verificationCancelled func(ctx context.Context, txnID id.VerificationTransactionID, code event.VerificationCancelCode, reason string)
-	verificationDone      func(ctx context.Context, txnID id.VerificationTransactionID)
+	supportedMethods              []event.VerificationMethod
+	verificationRequested         func(ctx context.Context, txnID id.VerificationTransactionID, from id.UserID)
+	verificationCancelledCallback func(ctx context.Context, txnID id.VerificationTransactionID, code event.VerificationCancelCode, reason string)
+	verificationDone              func(ctx context.Context, txnID id.VerificationTransactionID)
 
 	showSAS func(ctx context.Context, txnID id.VerificationTransactionID, emojis []rune, decimals []int)
 
+	scanQRCode   func(ctx context.Context, txnID id.VerificationTransactionID)
 	showQRCode   func(ctx context.Context, txnID id.VerificationTransactionID, qrCode *QRCode)
 	qrCodeScaned func(ctx context.Context, txnID id.VerificationTransactionID)
 }
@@ -178,11 +181,7 @@ func NewVerificationHelper(client *mautrix.Client, mach *crypto.OlmMachine, call
 		panic("callbacks must implement VerificationRequested")
 	} else {
 		helper.verificationRequested = c.VerificationRequested
-		helper.verificationError = func(ctx context.Context, txnID id.VerificationTransactionID, err error) {
-			zerolog.Ctx(ctx).Err(err).Msg("Verification error")
-			c.VerificationError(ctx, txnID, err)
-		}
-		helper.verificationCancelled = c.VerificationCancelled
+		helper.verificationCancelledCallback = c.VerificationCancelled
 		helper.verificationDone = c.VerificationDone
 	}
 
@@ -193,6 +192,7 @@ func NewVerificationHelper(client *mautrix.Client, mach *crypto.OlmMachine, call
 	if c, ok := callbacks.(showQRCodeCallbacks); ok {
 		helper.supportedMethods = append(helper.supportedMethods,
 			event.VerificationMethodQRCodeShow, event.VerificationMethodReciprocate)
+		helper.scanQRCode = c.ScanQRCode
 		helper.showQRCode = c.ShowQRCode
 		helper.qrCodeScaned = c.QRCodeScanned
 	}
@@ -207,9 +207,9 @@ func NewVerificationHelper(client *mautrix.Client, mach *crypto.OlmMachine, call
 }
 
 func (vh *VerificationHelper) getLog(ctx context.Context) *zerolog.Logger {
-	logger := vh.client.Log.With().
-		Any("supported_methods", vh.supportedMethods).
+	logger := zerolog.Ctx(ctx).With().
 		Str("component", "verification").
+		Any("supported_methods", vh.supportedMethods).
 		Logger()
 	return &logger
 }
@@ -292,14 +292,7 @@ func (vh *VerificationHelper) Init(ctx context.Context) error {
 				}
 
 				// Send the actual cancellation event.
-				err := vh.sendVerificationEvent(ctx, txn, event.InRoomVerificationCancel, &event.VerificationCancelEventContent{
-					Code:   code,
-					Reason: reason,
-				})
-				if err != nil {
-					log.Err(err).Msg("Failed to send cancellation event")
-				}
-				vh.verificationCancelled(ctx, txn.TransactionID, code, reason)
+				vh.cancelVerificationTxn(ctx, txn, code, reason)
 				return
 			}
 
@@ -456,7 +449,28 @@ func (vh *VerificationHelper) AcceptVerification(ctx context.Context, txnID id.V
 	}
 	txn.VerificationState = verificationStateReady
 
+	if slices.Contains(txn.TheirSupportedMethods, event.VerificationMethodQRCodeShow) {
+		vh.scanQRCode(ctx, txn.TransactionID)
+	}
+
 	return vh.generateAndShowQRCode(ctx, txn)
+}
+
+// CancelVerification cancels a verification request. The transaction ID should
+// be the transaction ID of a verification request that was received via the
+// VerificationRequested callback in [RequiredCallbacks].
+func (vh *VerificationHelper) CancelVerification(ctx context.Context, txnID id.VerificationTransactionID, code event.VerificationCancelCode, reason string) error {
+	log := vh.getLog(ctx).With().
+		Str("verification_action", "cancel verification").
+		Stringer("transaction_id", txnID).
+		Logger()
+	ctx = log.WithContext(ctx)
+
+	txn, ok := vh.activeTransactions[txnID]
+	if !ok {
+		return fmt.Errorf("unknown transaction ID")
+	}
+	return vh.cancelVerificationTxn(ctx, txn, code, reason)
 }
 
 // sendVerificationEvent sends a verification event to the other user's device
@@ -489,6 +503,27 @@ func (vh *VerificationHelper) sendVerificationEvent(ctx context.Context, txn *ve
 			return fmt.Errorf("failed to send start event: %w", err)
 		}
 	}
+	return nil
+}
+
+func (vh *VerificationHelper) cancelVerificationTxn(ctx context.Context, txn *verificationTransaction, code event.VerificationCancelCode, reasonFmtStr string, fmtArgs ...any) error {
+	log := vh.getLog(ctx)
+	reason := fmt.Sprintf(reasonFmtStr, fmtArgs...)
+	log.Info().
+		Stringer("transaction_id", txn.TransactionID).
+		Str("code", string(code)).
+		Str("reason", reason).
+		Msg("Sending cancellation event")
+	cancelEvt := &event.VerificationCancelEventContent{
+		Code:   code,
+		Reason: reason,
+	}
+	err := vh.sendVerificationEvent(ctx, txn, event.InRoomVerificationCancel, cancelEvt)
+	if err != nil {
+		return err
+	}
+	txn.VerificationState = verificationStateCancelled
+	vh.verificationCancelledCallback(ctx, txn.TransactionID, code, reason)
 	return nil
 }
 
@@ -586,7 +621,7 @@ func (vh *VerificationHelper) onVerificationReady(ctx context.Context, txn *veri
 		}
 		devices, err := vh.mach.CryptoStore.GetDevices(ctx, txn.TheirUser)
 		if err != nil {
-			vh.verificationError(ctx, txn.TransactionID, fmt.Errorf("failed to get devices for %s: %w", txn.TheirUser, err))
+			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to get devices for %s: %v", txn.TheirUser, err)
 			return
 		}
 		req := mautrix.ReqSendToDevice{Messages: map[id.UserID]map[id.DeviceID]*event.Content{txn.TheirUser: {}}}
@@ -604,9 +639,14 @@ func (vh *VerificationHelper) onVerificationReady(ctx context.Context, txn *veri
 			log.Warn().Err(err).Msg("Failed to send cancellation requests")
 		}
 	}
+
+	if slices.Contains(txn.TheirSupportedMethods, event.VerificationMethodQRCodeShow) {
+		vh.scanQRCode(ctx, txn.TransactionID)
+	}
+
 	err := vh.generateAndShowQRCode(ctx, txn)
 	if err != nil {
-		vh.verificationError(ctx, txn.TransactionID, fmt.Errorf("failed to generate and show QR code: %w", err))
+		vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to generate and show QR code: %v", err)
 	}
 }
 
@@ -621,8 +661,47 @@ func (vh *VerificationHelper) onVerificationStart(ctx context.Context, txn *veri
 	vh.activeTransactionsLock.Lock()
 	defer vh.activeTransactionsLock.Unlock()
 
-	if txn.VerificationState != verificationStateReady {
-		log.Warn().Msg("Ignoring verification start event for a transaction that is not in the ready state")
+	if txn.VerificationState == verificationStateSASStarted || txn.VerificationState == verificationStateOurQRScanned || txn.VerificationState == verificationStateTheirQRScanned {
+		// We might have sent the event, and they also sent an event.
+		if txn.StartEventContent == nil || !txn.StartedByUs {
+			// We didn't sent a start event yet, so we have gotten ourselves
+			// into a bad state. They've either sent two start events, or we
+			// have gone on to a new state.
+			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUnexpectedMessage,
+				"got repeat start event from other user")
+			return
+		}
+
+		// Otherwise, we need to implement the following algorithm from Section
+		// 11.12.2.1 of the Spec:
+		// https://spec.matrix.org/v1.9/client-server-api/#key-verification-framework
+		//
+		// If Alice's and Bob's clients both send an m.key.verification.start
+		// message, and both specify the same verification method, then the
+		// m.key.verification.start message sent by the user whose ID is the
+		// lexicographically largest user ID should be ignored, and the
+		// situation should be treated the same as if only the user with the
+		// lexicographically smallest user ID had sent the
+		// m.key.verification.start message. In the case where the user IDs are
+		// the same (that is, when a user is verifying their own device), then
+		// the device IDs should be compared instead. If the two
+		// m.key.verification.start messages do not specify the same
+		// verification method, then the verification should be cancelled with
+		// a code of m.unexpected_message.
+
+		if txn.StartEventContent.Method != startEvt.Method {
+			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUnexpectedMessage, "the start events have different verification methods")
+			return
+		}
+
+		if txn.TheirUser < vh.client.UserID || (txn.TheirUser == vh.client.UserID && txn.TheirDevice < vh.client.DeviceID) {
+			// Use their start event instead of ours
+			txn.StartedByUs = false
+			txn.StartEventContent = startEvt
+		}
+	} else if txn.VerificationState != verificationStateReady {
+		vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUnexpectedMessage,
+			"got start event for transaction that is not in ready state")
 		return
 	}
 
@@ -630,13 +709,12 @@ func (vh *VerificationHelper) onVerificationStart(ctx context.Context, txn *veri
 	case event.VerificationMethodSAS:
 		txn.VerificationState = verificationStateSASStarted
 		if err := vh.onVerificationStartSAS(ctx, txn, evt); err != nil {
-			vh.verificationError(ctx, txn.TransactionID, fmt.Errorf("failed to handle SAS verification start: %w", err))
-			// TODO cancel?
+			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to handle SAS verification start: %v", err)
 		}
 	case event.VerificationMethodReciprocate:
 		log.Info().Msg("Received reciprocate start event")
 		if !bytes.Equal(txn.QRCodeSharedSecret, startEvt.Secret) {
-			vh.verificationError(ctx, txn.TransactionID, errors.New("reciprocated shared secret does not match"))
+			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeKeyMismatch, "reciprocated shared secret does not match")
 			return
 		}
 		txn.VerificationState = verificationStateOurQRScanned
@@ -646,30 +724,8 @@ func (vh *VerificationHelper) onVerificationStart(ctx context.Context, txn *veri
 		// here, since the start command for scanning and showing QR codes
 		// should be of type m.reciprocate.v1.
 		log.Error().Str("method", string(startEvt.Method)).Msg("Unsupported verification method in start event")
-
-		cancelEvt := event.VerificationCancelEventContent{
-			Code:   event.VerificationCancelCodeUnknownMethod,
-			Reason: fmt.Sprintf("unknown method %s", startEvt.Method),
-		}
-		err := vh.sendVerificationEvent(ctx, txn, event.InRoomVerificationCancel, &cancelEvt)
-		if err != nil {
-			log.Err(err).Msg("Failed to send cancellation event")
-		}
-		vh.verificationCancelled(ctx, txn.TransactionID, cancelEvt.Code, cancelEvt.Reason)
+		vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUnknownMethod, fmt.Sprintf("unknown method %s", startEvt.Method))
 	}
-}
-
-func (vh *VerificationHelper) unexpectedEvent(ctx context.Context, txn *verificationTransaction) {
-	cancelEvt := event.VerificationCancelEventContent{
-		Code:   event.VerificationCancelCodeUnexpectedMessage,
-		Reason: "Got event for a transaction that is not in the correct state",
-	}
-	err := vh.sendVerificationEvent(ctx, txn, event.InRoomVerificationCancel, &cancelEvt)
-	if err != nil {
-		log.Err(err).Msg("Failed to send cancellation event")
-	}
-	txn.VerificationState = verificationStateCancelled
-	vh.verificationCancelled(ctx, txn.TransactionID, cancelEvt.Code, cancelEvt.Reason)
 }
 
 func (vh *VerificationHelper) onVerificationDone(ctx context.Context, txn *verificationTransaction, evt *event.Event) {
@@ -680,11 +736,16 @@ func (vh *VerificationHelper) onVerificationDone(ctx context.Context, txn *verif
 	vh.activeTransactionsLock.Lock()
 	defer vh.activeTransactionsLock.Unlock()
 
-	if txn.VerificationState == verificationStateTheirQRScanned || txn.VerificationState == verificationStateSASMAC {
-		txn.VerificationState = verificationStateDone
+	if txn.VerificationState != verificationStateTheirQRScanned && txn.VerificationState != verificationStateSASMACExchanged {
+		vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUnexpectedMessage,
+			"got done event for transaction that is not in QR-scanned or MAC-exchanged state")
+		return
+	}
+
+	txn.VerificationState = verificationStateDone
+	txn.ReceivedTheirDone = true
+	if txn.SentOurDone {
 		vh.verificationDone(ctx, txn.TransactionID)
-	} else {
-		vh.unexpectedEvent(ctx, txn)
 	}
 }
 
@@ -699,5 +760,5 @@ func (vh *VerificationHelper) onVerificationCancel(ctx context.Context, txn *ver
 	vh.activeTransactionsLock.Lock()
 	defer vh.activeTransactionsLock.Unlock()
 	txn.VerificationState = verificationStateCancelled
-	vh.verificationCancelled(ctx, txn.TransactionID, cancelEvt.Code, cancelEvt.Reason)
+	vh.verificationCancelledCallback(ctx, txn.TransactionID, cancelEvt.Code, cancelEvt.Reason)
 }

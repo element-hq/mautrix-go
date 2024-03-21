@@ -19,7 +19,6 @@ import (
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/retryafter"
-	"maunium.net/go/maulogger/v2/maulogadapt"
 
 	"github.com/element-hq/mautrix-go/crypto/backup"
 	"github.com/element-hq/mautrix-go/event"
@@ -40,23 +39,13 @@ type VerificationHelper interface {
 	StartVerification(ctx context.Context, to id.UserID) (id.VerificationTransactionID, error)
 	StartInRoomVerification(ctx context.Context, roomID id.RoomID, to id.UserID) (id.VerificationTransactionID, error)
 	AcceptVerification(ctx context.Context, txnID id.VerificationTransactionID) error
+	CancelVerification(ctx context.Context, txnID id.VerificationTransactionID, code event.VerificationCancelCode, reason string) error
 
 	HandleScannedQRData(ctx context.Context, data []byte) error
 	ConfirmQRCodeScanned(ctx context.Context, txnID id.VerificationTransactionID) error
 
 	StartSAS(ctx context.Context, txnID id.VerificationTransactionID) error
 	ConfirmSAS(ctx context.Context, txnID id.VerificationTransactionID) error
-}
-
-// Deprecated: switch to zerolog
-type Logger interface {
-	Debugfln(message string, args ...interface{})
-}
-
-// Deprecated: switch to zerolog
-type WarnLogger interface {
-	Logger
-	Warnfln(message string, args ...interface{})
 }
 
 // Client represents a Matrix client.
@@ -74,8 +63,6 @@ type Client struct {
 	Verification  VerificationHelper
 
 	Log zerolog.Logger
-	// Deprecated: switch to the zerolog instance in Log
-	Logger Logger
 
 	RequestHook  func(req *http.Request)
 	ResponseHook func(req *http.Request, resp *http.Response, duration time.Duration)
@@ -1690,9 +1677,11 @@ func (cli *Client) JoinedMembers(ctx context.Context, roomID id.RoomID) (resp *R
 	_, err = cli.MakeRequest(ctx, http.MethodGet, u, nil, &resp)
 	if err == nil && cli.StateStore != nil {
 		clearErr := cli.StateStore.ClearCachedMembers(ctx, roomID, event.MembershipJoin)
-		cli.cliOrContextLog(ctx).Warn().Err(clearErr).
-			Stringer("room_id", roomID).
-			Msg("Failed to clear cached member list after fetching joined members")
+		if clearErr != nil {
+			cli.cliOrContextLog(ctx).Warn().Err(clearErr).
+				Stringer("room_id", roomID).
+				Msg("Failed to clear cached member list after fetching joined members")
+		}
 		for userID, member := range resp.Joined {
 			updateErr := cli.StateStore.SetMember(ctx, roomID, userID, &event.MemberEventContent{
 				Membership:  event.MembershipJoin,
@@ -1700,7 +1689,7 @@ func (cli *Client) JoinedMembers(ctx context.Context, roomID id.RoomID) (resp *R
 				Displayname: member.DisplayName,
 			})
 			if updateErr != nil {
-				cli.cliOrContextLog(ctx).Warn().Err(clearErr).
+				cli.cliOrContextLog(ctx).Warn().Err(updateErr).
 					Stringer("room_id", roomID).
 					Stringer("user_id", userID).
 					Msg("Failed to update membership in state store after fetching joined members")
@@ -1734,9 +1723,11 @@ func (cli *Client) Members(ctx context.Context, roomID id.RoomID, req ...ReqMemb
 		}
 		if extra.NotMembership == "" {
 			clearErr := cli.StateStore.ClearCachedMembers(ctx, roomID, clearMemberships...)
-			cli.cliOrContextLog(ctx).Warn().Err(clearErr).
-				Stringer("room_id", roomID).
-				Msg("Failed to clear cached member list after fetching joined members")
+			if clearErr != nil {
+				cli.cliOrContextLog(ctx).Warn().Err(clearErr).
+					Stringer("room_id", roomID).
+					Msg("Failed to clear cached member list after fetching joined members")
+			}
 		}
 		for _, evt := range resp.Chunk {
 			UpdateStateStore(ctx, cli.StateStore, evt)
@@ -2290,7 +2281,7 @@ func NewClient(homeserverURL string, userID id.UserID, accessToken string) (*Cli
 	if err != nil {
 		return nil, err
 	}
-	cli := &Client{
+	return &Client{
 		AccessToken:   accessToken,
 		UserAgent:     DefaultUserAgent,
 		HomeserverURL: hsURL,
@@ -2302,7 +2293,5 @@ func NewClient(homeserverURL string, userID id.UserID, accessToken string) (*Cli
 		// The client will work with this storer: it just won't remember across restarts.
 		// In practice, a database backend should be used.
 		Store: NewMemorySyncStore(),
-	}
-	cli.Logger = maulogadapt.ZeroAsMau(&cli.Log)
-	return cli, nil
+	}, nil
 }

@@ -118,19 +118,7 @@ type RespCreateMXC struct {
 }
 
 // RespPreviewURL is the JSON response for https://spec.matrix.org/v1.2/client-server-api/#get_matrixmediav3preview_url
-type RespPreviewURL struct {
-	CanonicalURL string `json:"og:url,omitempty"`
-	Title        string `json:"og:title,omitempty"`
-	Type         string `json:"og:type,omitempty"`
-	Description  string `json:"og:description,omitempty"`
-
-	ImageURL id.ContentURIString `json:"og:image,omitempty"`
-
-	ImageSize   int    `json:"matrix:image:size,omitempty"`
-	ImageWidth  int    `json:"og:image:width,omitempty"`
-	ImageHeight int    `json:"og:image:height,omitempty"`
-	ImageType   string `json:"og:image:type,omitempty"`
-}
+type RespPreviewURL = event.LinkPreview
 
 // RespUserInteractive is the JSON response for https://spec.matrix.org/v1.2/client-server-api/#user-interactive-authentication-api
 type RespUserInteractive struct {
@@ -321,6 +309,12 @@ func (slr SyncLeftRoom) MarshalJSON() ([]byte, error) {
 	return marshalAndDeleteEmpty((marshalableSyncLeftRoom)(slr), syncLeftRoomPathsToDelete)
 }
 
+type BeeperInboxPreviewEvent struct {
+	EventID   id.EventID         `json:"event_id"`
+	Timestamp jsontime.UnixMilli `json:"origin_server_ts"`
+	Event     *event.Event       `json:"event,omitempty"`
+}
+
 type SyncJoinedRoom struct {
 	Summary     LazyLoadSummary `json:"summary"`
 	State       SyncEventsList  `json:"state"`
@@ -331,6 +325,8 @@ type SyncJoinedRoom struct {
 	UnreadNotifications *UnreadNotificationCounts `json:"unread_notifications,omitempty"`
 	// https://github.com/matrix-org/matrix-spec-proposals/pull/2654
 	MSC2654UnreadCount *int `json:"org.matrix.msc2654.unread_count,omitempty"`
+	// Beeper extension
+	BeeperInboxPreview *BeeperInboxPreviewEvent `json:"com.beeper.inbox.preview,omitempty"`
 }
 
 type UnreadNotificationCounts struct {
