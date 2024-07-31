@@ -17,10 +17,10 @@ import (
 
 	"go.mau.fi/util/exzerolog"
 
-	"github.com/element-hq/mautrix-go/mautrix"
-	"github.com/element-hq/mautrix-go/mautrix/crypto/ssss"
-	"github.com/element-hq/mautrix-go/mautrix/event"
-	"github.com/element-hq/mautrix-go/mautrix/id"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/crypto/ssss"
+	"github.com/element-hq/mautrix-go/event"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 // OlmMachine is the main struct for handling Matrix end-to-end encryption.
