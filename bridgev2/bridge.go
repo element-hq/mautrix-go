@@ -15,11 +15,11 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/dbutil"
 
-	"maunium.net/go/mautrix/bridge/status"
-	"maunium.net/go/mautrix/bridgev2/bridgeconfig"
-	"maunium.net/go/mautrix/bridgev2/database"
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/bridge/status"
+	"github.com/element-hq/mautrix-go/bridgev2/bridgeconfig"
+	"github.com/element-hq/mautrix-go/bridgev2/database"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 var ErrNotLoggedIn = errors.New("not logged in")

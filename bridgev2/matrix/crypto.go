@@ -21,13 +21,13 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/dbutil"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/bridgev2"
-	"maunium.net/go/mautrix/crypto"
-	"maunium.net/go/mautrix/crypto/olm"
-	"maunium.net/go/mautrix/event"
-	"maunium.net/go/mautrix/id"
-	"maunium.net/go/mautrix/sqlstatestore"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/bridgev2"
+	"github.com/element-hq/mautrix-go/crypto"
+	"github.com/element-hq/mautrix-go/crypto/olm"
+	"github.com/element-hq/mautrix-go/event"
+	"github.com/element-hq/mautrix-go/id"
+	"github.com/element-hq/mautrix-go/sqlstatestore"
 )
 
 func init() {

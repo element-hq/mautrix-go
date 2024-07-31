@@ -17,11 +17,11 @@ import (
 	"go.mau.fi/util/configupgrade"
 	"go.mau.fi/util/ptr"
 
-	"maunium.net/go/mautrix/bridgev2/database"
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/event"
-	"maunium.net/go/mautrix/id"
-	"maunium.net/go/mautrix/mediaproxy"
+	"github.com/element-hq/mautrix-go/bridgev2/database"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/event"
+	"github.com/element-hq/mautrix-go/id"
+	"github.com/element-hq/mautrix-go/mediaproxy"
 )
 
 type ConvertedMessagePart struct {

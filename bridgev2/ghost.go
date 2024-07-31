@@ -16,10 +16,10 @@ import (
 	"go.mau.fi/util/exmime"
 	"golang.org/x/exp/slices"
 
-	"maunium.net/go/mautrix/bridgev2/database"
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/event"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/bridgev2/database"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/event"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type Ghost struct {

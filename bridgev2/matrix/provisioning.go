@@ -21,10 +21,10 @@ import (
 	"github.com/rs/zerolog/hlog"
 	"go.mau.fi/util/requestlog"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/bridgev2"
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/bridgev2"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type matrixAuthCacheEntry struct {

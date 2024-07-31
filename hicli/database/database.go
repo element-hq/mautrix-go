@@ -9,7 +9,7 @@ package database
 import (
 	"go.mau.fi/util/dbutil"
 
-	"maunium.net/go/mautrix/hicli/database/upgrades"
+	"github.com/element-hq/mautrix-go/hicli/database/upgrades"
 )
 
 type Database struct {

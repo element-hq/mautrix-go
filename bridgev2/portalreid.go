@@ -13,8 +13,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/event"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/event"
 )
 
 type ReIDResult int

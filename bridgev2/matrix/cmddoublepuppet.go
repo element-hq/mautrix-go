@@ -7,7 +7,7 @@
 package matrix
 
 import (
-	"maunium.net/go/mautrix/bridgev2/commands"
+	"github.com/element-hq/mautrix-go/bridgev2/commands"
 )
 
 var CommandLoginMatrix = &commands.FullHandler{

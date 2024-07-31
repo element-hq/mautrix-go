@@ -11,7 +11,7 @@ package matrix
 import (
 	"errors"
 
-	"maunium.net/go/mautrix/bridge"
+	"github.com/element-hq/mautrix-go/bridge"
 )
 
 func NewCryptoHelper(bridge *bridge.Bridge) bridge.Crypto {

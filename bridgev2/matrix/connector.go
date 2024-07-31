@@ -28,17 +28,17 @@ import (
 	_ "go.mau.fi/util/dbutil/litestream"
 	"go.mau.fi/util/exsync"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/appservice"
-	"maunium.net/go/mautrix/bridge/status"
-	"maunium.net/go/mautrix/bridgev2"
-	"maunium.net/go/mautrix/bridgev2/bridgeconfig"
-	"maunium.net/go/mautrix/bridgev2/commands"
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/event"
-	"maunium.net/go/mautrix/id"
-	"maunium.net/go/mautrix/mediaproxy"
-	"maunium.net/go/mautrix/sqlstatestore"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/appservice"
+	"github.com/element-hq/mautrix-go/bridge/status"
+	"github.com/element-hq/mautrix-go/bridgev2"
+	"github.com/element-hq/mautrix-go/bridgev2/bridgeconfig"
+	"github.com/element-hq/mautrix-go/bridgev2/commands"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/event"
+	"github.com/element-hq/mautrix-go/id"
+	"github.com/element-hq/mautrix-go/mediaproxy"
+	"github.com/element-hq/mautrix-go/sqlstatestore"
 )
 
 type Crypto interface {

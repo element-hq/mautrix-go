@@ -15,9 +15,9 @@ import (
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
 
-	"maunium.net/go/mautrix/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
 
-	"maunium.net/go/mautrix/bridgev2/database/upgrades"
+	"github.com/element-hq/mautrix-go/bridgev2/database/upgrades"
 )
 
 type Database struct {

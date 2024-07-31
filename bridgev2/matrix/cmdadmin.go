@@ -9,8 +9,8 @@ package matrix
 import (
 	"strconv"
 
-	"maunium.net/go/mautrix/bridgev2/commands"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/bridgev2/commands"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 var CommandDiscardMegolmSession = &commands.FullHandler{

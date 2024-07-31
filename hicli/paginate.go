@@ -11,9 +11,9 @@ import (
 	"errors"
 	"fmt"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/hicli/database"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/hicli/database"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 var ErrPaginationAlreadyInProgress = errors.New("pagination is already in progress")

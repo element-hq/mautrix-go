@@ -13,9 +13,9 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"maunium.net/go/mautrix/crypto"
-	"maunium.net/go/mautrix/hicli/database"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/crypto"
+	"github.com/element-hq/mautrix-go/hicli/database"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 func (h *HiClient) fetchFromKeyBackup(ctx context.Context, roomID id.RoomID, sessionID id.SessionID) (*crypto.InboundGroupSession, error) {

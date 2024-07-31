@@ -15,10 +15,10 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/exsync"
 
-	"maunium.net/go/mautrix/bridge/status"
-	"maunium.net/go/mautrix/bridgev2/database"
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/bridge/status"
+	"github.com/element-hq/mautrix-go/bridgev2/database"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type UserLogin struct {

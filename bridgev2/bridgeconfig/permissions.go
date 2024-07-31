@@ -12,7 +12,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type Permissions struct {

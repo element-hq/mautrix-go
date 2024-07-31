@@ -13,11 +13,11 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"maunium.net/go/mautrix/crypto"
-	"maunium.net/go/mautrix/crypto/backup"
-	"maunium.net/go/mautrix/crypto/ssss"
-	"maunium.net/go/mautrix/event"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/crypto"
+	"github.com/element-hq/mautrix-go/crypto/backup"
+	"github.com/element-hq/mautrix-go/crypto/ssss"
+	"github.com/element-hq/mautrix-go/event"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 func (h *HiClient) checkIsCurrentDeviceVerified(ctx context.Context) (bool, error) {

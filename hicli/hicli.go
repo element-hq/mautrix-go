@@ -21,11 +21,11 @@ import (
 	"go.mau.fi/util/dbutil"
 	"go.mau.fi/util/exerrors"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/crypto"
-	"maunium.net/go/mautrix/crypto/backup"
-	"maunium.net/go/mautrix/hicli/database"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/crypto"
+	"github.com/element-hq/mautrix-go/crypto/backup"
+	"github.com/element-hq/mautrix-go/hicli/database"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type HiClient struct {

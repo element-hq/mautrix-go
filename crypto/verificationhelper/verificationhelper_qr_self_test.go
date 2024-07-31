@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"maunium.net/go/mautrix/crypto"
-	"maunium.net/go/mautrix/crypto/verificationhelper"
-	"maunium.net/go/mautrix/event"
+	"github.com/element-hq/mautrix-go/crypto"
+	"github.com/element-hq/mautrix-go/crypto/verificationhelper"
+	"github.com/element-hq/mautrix-go/event"
 )
 
 func TestSelfVerification_Accept_QRContents(t *testing.T) {

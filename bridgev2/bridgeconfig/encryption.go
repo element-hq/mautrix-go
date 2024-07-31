@@ -7,7 +7,7 @@
 package bridgeconfig
 
 import (
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type EncryptionConfig struct {

@@ -18,12 +18,12 @@ import (
 	"go.mau.fi/util/exzerolog"
 	"golang.org/x/exp/slices"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/crypto"
-	"maunium.net/go/mautrix/crypto/olm"
-	"maunium.net/go/mautrix/event"
-	"maunium.net/go/mautrix/hicli/database"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/crypto"
+	"github.com/element-hq/mautrix-go/crypto/olm"
+	"github.com/element-hq/mautrix-go/event"
+	"github.com/element-hq/mautrix-go/hicli/database"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type syncContext struct {

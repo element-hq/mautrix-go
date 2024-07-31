@@ -16,11 +16,11 @@ import (
 	"net/http"
 	"strings"
 
-	"maunium.net/go/mautrix"
-	"maunium.net/go/mautrix/bridgev2"
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/id"
-	"maunium.net/go/mautrix/mediaproxy"
+	"github.com/element-hq/mautrix-go"
+	"github.com/element-hq/mautrix-go/bridgev2"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/id"
+	"github.com/element-hq/mautrix-go/mediaproxy"
 )
 
 const MediaIDPrefix = "\U0001F408"

@@ -13,7 +13,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"maunium.net/go/mautrix/bridge/status"
+	"github.com/element-hq/mautrix-go/bridge/status"
 )
 
 type BridgeStateQueue struct {

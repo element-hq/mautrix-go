@@ -15,8 +15,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"maunium.net/go/mautrix/event"
-	"maunium.net/go/mautrix/format"
+	"github.com/element-hq/mautrix-go/event"
+	"github.com/element-hq/mautrix-go/format"
 )
 
 func (br *Bridge) QueueMatrixEvent(ctx context.Context, evt *event.Event) {

@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"maunium.net/go/mautrix/appservice"
+	"github.com/element-hq/mautrix-go/appservice"
 )
 
 const defaultReconnectBackoff = 2 * time.Second

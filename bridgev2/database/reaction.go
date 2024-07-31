@@ -12,8 +12,8 @@ import (
 
 	"go.mau.fi/util/dbutil"
 
-	"maunium.net/go/mautrix/bridgev2/networkid"
-	"maunium.net/go/mautrix/id"
+	"github.com/element-hq/mautrix-go/bridgev2/networkid"
+	"github.com/element-hq/mautrix-go/id"
 )
 
 type ReactionQuery struct {
