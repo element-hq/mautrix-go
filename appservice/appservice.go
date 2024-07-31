@@ -56,6 +56,8 @@ func Create() *AppService {
 		DeviceLists:    make(chan *mautrix.DeviceLists, EventChannelSize),
 		QueryHandler:   &QueryHandlerStub{},
 
+		SpecVersions: &mautrix.RespVersions{},
+
 		DefaultHTTPRetries: 4,
 	}
 
@@ -158,12 +160,13 @@ type AppService struct {
 	QueryHandler   QueryHandler
 	StateStore     StateStore
 
-	Router     *mux.Router
-	UserAgent  string
-	server     *http.Server
-	HTTPClient *http.Client
-	botClient  *mautrix.Client
-	botIntent  *IntentAPI
+	Router       *mux.Router
+	UserAgent    string
+	server       *http.Server
+	HTTPClient   *http.Client
+	botClient    *mautrix.Client
+	botIntent    *IntentAPI
+	SpecVersions *mautrix.RespVersions
 
 	DefaultHTTPRetries int
 
@@ -193,6 +196,7 @@ type AppService struct {
 }
 
 const DoublePuppetKey = "fi.mau.double_puppet_source"
+const DoublePuppetTSKey = "fi.mau.double_puppet_ts"
 
 func getDefaultProcessID() string {
 	pid := syscall.Getpid()
@@ -364,6 +368,7 @@ func (as *AppService) NewMautrixClient(userID id.UserID) *mautrix.Client {
 		Log:                 as.Log.With().Str("as_user_id", userID.String()).Logger(),
 		Client:              as.HTTPClient,
 		DefaultHTTPRetries:  as.DefaultHTTPRetries,
+		SpecVersions:        as.SpecVersions,
 	}
 }
 

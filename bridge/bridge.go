@@ -276,7 +276,7 @@ func (br *Bridge) GenerateRegistration() {
 		os.Exit(21)
 	}
 
-	updateTokens := func(helper *configupgrade.Helper) {
+	updateTokens := func(helper configupgrade.Helper) {
 		helper.Set(configupgrade.Str, reg.AppToken, "appservice", "as_token")
 		helper.Set(configupgrade.Str, reg.ServerToken, "appservice", "hs_token")
 	}
@@ -324,10 +324,19 @@ func (br *Bridge) ensureConnection(ctx context.Context) {
 	for {
 		versions, err := br.Bot.Versions(ctx)
 		if err != nil {
-			br.ZLog.Err(err).Msg("Failed to connect to homeserver, retrying in 10 seconds...")
-			time.Sleep(10 * time.Second)
+			if errors.Is(err, mautrix.MForbidden) {
+				br.ZLog.Debug().Msg("M_FORBIDDEN in /versions, trying to register before retrying")
+				err = br.Bot.EnsureRegistered(ctx)
+				if err != nil {
+					br.ZLog.Err(err).Msg("Failed to register after /versions failed")
+				}
+			} else {
+				br.ZLog.Err(err).Msg("Failed to connect to homeserver, retrying in 10 seconds...")
+				time.Sleep(10 * time.Second)
+			}
 		} else {
 			br.SpecVersions = *versions
+			*br.AS.SpecVersions = *versions
 			break
 		}
 	}
@@ -775,7 +784,7 @@ func (br *Bridge) ResendBridgeInfo() {
 	if !br.SaveConfig {
 		br.ZLog.Warn().Msg("Not setting resend_bridge_info to false in config due to --no-update flag")
 	} else {
-		_, _, err := configupgrade.Do(br.ConfigPath, true, br.ConfigUpgrader, configupgrade.SimpleUpgrader(func(helper *configupgrade.Helper) {
+		_, _, err := configupgrade.Do(br.ConfigPath, true, br.ConfigUpgrader, configupgrade.SimpleUpgrader(func(helper configupgrade.Helper) {
 			helper.Set(configupgrade.Bool, "false", "bridge", "resend_bridge_info")
 		}))
 		if err != nil {

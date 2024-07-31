@@ -564,6 +564,8 @@ func (vh *VerificationHelper) onVerificationMAC(ctx context.Context, txn *verifi
 		Str("verification_action", "mac").
 		Logger()
 	log.Info().Msg("Received SAS verification MAC event")
+	vh.activeTransactionsLock.Lock()
+	defer vh.activeTransactionsLock.Unlock()
 	macEvt := evt.Content.AsVerificationMAC()
 
 	// Verifying Keys MAC
@@ -580,7 +582,7 @@ func (vh *VerificationHelper) onVerificationMAC(ctx context.Context, txn *verifi
 	slices.Sort(keyIDs)
 	expectedKeyMAC, err := vh.verificationMACHKDF(txn, txn.TheirUser, txn.TheirDevice, vh.client.UserID, vh.client.DeviceID, "KEY_IDS", strings.Join(keyIDs, ","))
 	if err != nil {
-		vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeSASMismatch, "failed to calculate key list MAC: %v", err)
+		vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeSASMismatch, "failed to calculate key list MAC: %w", err)
 		return
 	}
 	if !bytes.Equal(expectedKeyMAC, macEvt.Keys) {
@@ -607,7 +609,7 @@ func (vh *VerificationHelper) onVerificationMAC(ctx context.Context, txn *verifi
 		if kID == txn.TheirDevice.String() {
 			theirDevice, err = vh.mach.GetOrFetchDevice(ctx, txn.TheirUser, txn.TheirDevice)
 			if err != nil {
-				vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to fetch their device: %v", err)
+				vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to fetch their device: %w", err)
 				return
 			}
 			key = theirDevice.SigningKey.String()
@@ -626,7 +628,7 @@ func (vh *VerificationHelper) onVerificationMAC(ctx context.Context, txn *verifi
 
 		expectedMAC, err := vh.verificationMACHKDF(txn, txn.TheirUser, txn.TheirDevice, vh.client.UserID, vh.client.DeviceID, keyID.String(), key)
 		if err != nil {
-			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to calculate key MAC: %v", err)
+			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to calculate key MAC: %w", err)
 			return
 		}
 		if !bytes.Equal(expectedMAC, mac) {
@@ -639,21 +641,19 @@ func (vh *VerificationHelper) onVerificationMAC(ctx context.Context, txn *verifi
 			theirDevice.Trust = id.TrustStateVerified
 			err = vh.mach.CryptoStore.PutDevice(ctx, txn.TheirUser, theirDevice)
 			if err != nil {
-				vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to update device trust state after verifying: %v", err)
+				vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to update device trust state after verifying: %w", err)
 				return
 			}
 		}
 	}
 	log.Info().Msg("All MACs verified")
 
-	vh.activeTransactionsLock.Lock()
-	defer vh.activeTransactionsLock.Unlock()
 	txn.ReceivedTheirMAC = true
 	if txn.SentOurMAC {
 		txn.VerificationState = verificationStateSASMACExchanged
 		err := vh.sendVerificationEvent(ctx, txn, event.InRoomVerificationDone, &event.VerificationDoneEventContent{})
 		if err != nil {
-			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to send verification done event: %v", err)
+			vh.cancelVerificationTxn(ctx, txn, event.VerificationCancelCodeUser, "failed to send verification done event: %w", err)
 			return
 		}
 		txn.SentOurDone = true
